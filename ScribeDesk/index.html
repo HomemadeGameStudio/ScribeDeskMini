@@ -3,58 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScribeDesk - IDE</title>
+    <title>ScribeDesk</title>
     
-    <!-- Typography Imports -->
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Geist+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
         /* ============================================
-           CSS VARIABLES & THEME CONFIGURATION
-           ============================================ */
-        :root {
-            /* Aero-Dark Color Palette */
-            --bg-primary: #0d0d0d;
-            --bg-secondary: #161616;
-            --bg-tertiary: #1a1a1a;
-            --bg-glass: rgba(22, 22, 22, 0.7);
-            --bg-glass-heavy: rgba(22, 22, 22, 0.85);
-            
-            /* Accent Colors */
-            --accent-primary: #3b82f6;
-            --accent-secondary: #8b5cf6;
-            --accent-success: #10b981;
-            --accent-warning: #f59e0b;
-            --accent-error: #ef4444;
-            
-            /* Text Colors */
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-tertiary: #71717a;
-            
-            /* Border Colors */
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --border-glass-hover: rgba(255, 255, 255, 0.15);
-            
-            /* Typography */
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-code: 'Geist Mono', monospace;
-            
-            /* Spacing */
-            --sidebar-width: 260px;
-            --statusbar-height: 28px;
-            --tab-height: 36px;
-            
-            /* Animations */
-            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-medium: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* ============================================
-           RESET & BASE STYLES
+           CSS RESET & BASE STYLES
            ============================================ */
         * {
             margin: 0;
@@ -62,1332 +20,902 @@
             box-sizing: border-box;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-glass-hover);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-tertiary);
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --accent-orange: #f97316;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: 16px;
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            font-family: var(--font-code);
-            background: var(--bg-primary);
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
             color: var(--text-primary);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
 
         /* ============================================
-           MAIN LAYOUT STRUCTURE
+           AMBIENT BACKGROUND GLOW
            ============================================ */
-        .ide-container {
-            display: grid;
-            grid-template-columns: var(--sidebar-width) 1fr;
-            grid-template-rows: 1fr var(--statusbar-height);
-            height: 100vh;
-            width: 100vw;
+        .ambient-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(ellipse at center, 
+                rgba(59, 130, 246, 0.08) 0%, 
+                rgba(139, 92, 246, 0.04) 30%, 
+                transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
         }
 
         /* ============================================
-           SIDEBAR - FILE EXPLORER
+           MAIN CONTAINER
            ============================================ */
-        .sidebar {
-            grid-row: 1 / 2;
-            grid-column: 1 / 2;
-            background: var(--bg-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid var(--border-glass);
+        .container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            transition: transform var(--transition-medium);
+            align-items: center;
+            padding: 2rem;
         }
 
-        .sidebar.collapsed {
-            transform: translateX(calc(-1 * var(--sidebar-width)));
-            position: absolute;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-glass);
-            font-family: var(--font-display);
-            font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-        }
-
-        .file-tree {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 0;
-        }
-
-        .file-tree-section {
-            margin-bottom: 16px;
-        }
-
-        .file-tree-label {
-            padding: 8px 16px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-tertiary);
-            cursor: default;
-        }
-
-        .file-item {
+        /* ============================================
+           FLOATING NAVIGATION PILL
+           ============================================ */
+        .nav-pill {
             display: flex;
             align-items: center;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            position: relative;
-            user-select: none;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 700px;
+            padding: 0.75rem 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            margin-bottom: 3rem;
+            animation: slideDown 0.6s var(--transition-smooth);
         }
 
-        .file-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--accent-primary);
-            opacity: 0;
-            transition: opacity var(--transition-fast);
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .file-item:hover {
-            background: rgba(255, 255, 255, 0.03);
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: -0.02em;
         }
 
-        .file-item:active {
-            transform: scale(0.98);
-            /* Hook for tactile audio: play click sound here */
-        }
-
-        .file-item.active {
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .file-item.active::before {
-            opacity: 1;
-        }
-
-        .file-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 10px;
+        .nav-logo-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            color: var(--text-secondary);
+            font-size: 0.8rem;
         }
 
-        .file-name {
-            font-size: 13px;
-            color: var(--text-secondary);
-            transition: color var(--transition-fast);
-        }
-
-        .file-item:hover .file-name {
-            color: var(--text-primary);
-        }
-
-        .file-item.active .file-name {
-            color: var(--text-primary);
-        }
-
-        /* File type colors */
-        .file-icon.js { color: #f7df1e; }
-        .file-icon.css { color: #563d7c; }
-        .file-icon.html { color: #e34c26; }
-        .file-icon.json { color: #cbcb41; }
-        .file-icon.py { color: #3776ab; }
-        .file-icon.cpp { color: #00599c; }
-
-        /* ============================================
-           CONTEXT MENU (Frosted Glass Modal)
-           ============================================ */
-        .context-menu {
-            position: fixed;
-            background: var(--bg-glass-heavy);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glass);
-            border-radius: 8px;
-            padding: 8px 0;
-            min-width: 200px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            z-index: 1000;
-            opacity: 0;
-            transform: scale(0.95);
-            pointer-events: none;
-            transition: all var(--transition-fast);
-        }
-
-        .context-menu.visible {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-        }
-
-        .context-menu-item {
-            padding: 10px 16px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all var(--transition-fast);
+        .nav-links {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.5rem;
         }
 
-        .context-menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+        .nav-link {
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s var(--transition-smooth);
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
             color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .context-menu-item:active {
-            transform: scale(0.98);
-            /* Hook for tactile audio */
+        .nav-link.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .context-menu-divider {
-            height: 1px;
-            background: var(--border-glass);
-            margin: 8px 0;
+        .nav-settings {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s var(--transition-smooth);
+        }
+
+        .nav-settings:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* ============================================
-           MAIN WORKSPACE
+           HERO SECTION
            ============================================ */
-        .workspace {
-            grid-row: 1 / 2;
-            grid-column: 2 / 3;
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s var(--transition-smooth) 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           SEARCH BAR
+           ============================================ */
+        .search-container {
+            width: 100%;
+            max-width: 560px;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s var(--transition-smooth) 0.4s both;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3rem;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            outline: none;
+            transition: all 0.3s var(--transition-smooth);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1),
+                        0 0 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* ============================================
+           SHORTCUT GRID
+           ============================================ */
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: auto;
+            animation: fadeIn 0.8s var(--transition-smooth) 0.6s both;
+        }
+
+        .shortcut-card {
+            position: relative;
+            padding: 1.5rem 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s var(--transition-smooth);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            background: var(--bg-secondary);
-            overflow: hidden;
-        }
-
-        /* Tab Bar */
-        .tab-bar {
-            display: flex;
             align-items: center;
-            height: var(--tab-height);
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border-glass);
-            overflow-x: auto;
-            overflow-y: hidden;
+            gap: 0.75rem;
         }
 
-        .tab {
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            height: 100%;
-            background: transparent;
-            border-right: 1px solid var(--border-glass);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            font-size: 12px;
-            color: var(--text-secondary);
-            min-width: 150px;
-            max-width: 250px;
-            position: relative;
-        }
-
-        .tab::before {
+        .shortcut-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 2px;
-            background: var(--accent-primary);
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.03) 100%);
             opacity: 0;
-            transition: opacity var(--transition-fast);
+            transition: opacity 0.3s var(--transition-smooth);
         }
 
-        .tab:hover {
-            background: rgba(255, 255, 255, 0.03);
+        .shortcut-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .tab:active {
-            transform: scale(0.98);
-            /* Hook for tactile audio */
+        .shortcut-card:hover::before {
+            opacity: 1;
         }
 
-        .tab.active {
-            background: var(--bg-secondary);
+        .shortcut-card:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        /* Brand-specific accents */
+        .shortcut-discord { --brand-color: #5865F2; }
+        .shortcut-youtube { --brand-color: #FF0000; }
+        .shortcut-github { --brand-color: #333333; }
+        .shortcut-chatgpt { --brand-color: #10a37f; }
+        .shortcut-google { --brand-color: #4285F4; }
+        .shortcut-reddit { --brand-color: #FF4500; }
+        .shortcut-twitter { --brand-color: #1DA1F2; }
+        .shortcut-twitch { --brand-color: #9146FF; }
+
+        .shortcut-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s var(--transition-smooth);
+        }
+
+        .shortcut-card:hover .shortcut-icon {
+            transform: scale(1.1);
+        }
+
+        .shortcut-discord .shortcut-icon { background: linear-gradient(135deg, #5865F2, #4752c4); }
+        .shortcut-youtube .shortcut-icon { background: linear-gradient(135deg, #FF0000, #cc0000); }
+        .shortcut-github .shortcut-icon { background: linear-gradient(135deg, #333333, #24292e); }
+        .shortcut-chatgpt .shortcut-icon { background: linear-gradient(135deg, #10a37f, #0d8a6a); }
+        .shortcut-google .shortcut-icon { background: linear-gradient(135deg, #4285F4, #357abd); }
+        .shortcut-reddit .shortcut-icon { background: linear-gradient(135deg, #FF4500, #e03d00); }
+        .shortcut-twitter .shortcut-icon { background: linear-gradient(135deg, #1DA1F2, #1a91da); }
+        .shortcut-twitch .shortcut-icon { background: linear-gradient(135deg, #9146FF, #7d3ae0); }
+
+        .shortcut-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s var(--transition-smooth);
+        }
+
+        .shortcut-card:hover .shortcut-name {
             color: var(--text-primary);
         }
 
-        .tab.active::before {
-            opacity: 1;
-        }
-
-        .tab-close {
-            margin-left: auto;
-            width: 18px;
-            height: 18px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            opacity: 0;
-            transition: all var(--transition-fast);
-        }
-
-        .tab:hover .tab-close {
-            opacity: 1;
-        }
-
-        .tab-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .tab-close:active {
-            transform: scale(0.9);
-            /* Hook for tactile audio */
-        }
-
-        /* Editor Area */
-        .editor-area {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tab-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity var(--transition-medium);
-        }
-
-        .tab-content.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .tab-content iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #ffffff;
-        }
-
-        /* Fake Terminal Loading Screen */
-        .loading-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-primary);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: var(--font-code);
-            padding: 40px;
-        }
-
-        .loading-screen.active {
-            display: flex;
-        }
-
-        .terminal-output {
-            width: 100%;
-            max-width: 600px;
-            font-size: 12px;
-            line-height: 1.8;
-            color: var(--text-secondary);
-        }
-
-        .terminal-line {
-            opacity: 0;
-            transform: translateX(-10px);
-            animation: terminalFadeIn 0.3s ease forwards;
-        }
-
-        @keyframes terminalFadeIn {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .terminal-success {
-            color: var(--accent-success);
-        }
-
-        .terminal-warning {
-            color: var(--accent-warning);
-        }
-
-        .terminal-info {
-            color: var(--accent-primary);
-        }
-
-        .cursor-blink {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background: var(--accent-primary);
-            animation: blink 1s step-end infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        /* Dummy Code Display (Panic Mode) */
-        .dummy-code {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-primary);
-            padding: 20px;
-            font-family: var(--font-code);
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            overflow: auto;
-            display: none;
-        }
-
-        .dummy-code.active {
-            display: block;
-        }
-
-        .dummy-code .keyword { color: var(--accent-secondary); }
-        .dummy-code .string { color: var(--accent-success); }
-        .dummy-code .function { color: var(--accent-primary); }
-        .dummy-code .comment { color: var(--text-tertiary); }
-        .dummy-code .number { color: var(--accent-warning); }
-
         /* ============================================
-           STATUS BAR
+           TELEMETRY FOOTER
            ============================================ */
-        .status-bar {
-            grid-row: 2 / 3;
-            grid-column: 1 / 3;
-            background: var(--bg-glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid var(--border-glass);
+        .telemetry-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
-            font-size: 11px;
-            color: var(--text-tertiary);
+            width: 100%;
+            max-width: 700px;
+            padding: 1rem 0;
+            margin-top: 2rem;
+            animation: fadeIn 0.8s var(--transition-smooth) 0.8s both;
         }
 
-        .status-left,
-        .status-right {
+        .telemetry-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5rem;
         }
 
-        .status-item {
+        .greeting {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .ping-indicator {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 0.5rem;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
 
-        .status-indicator {
+        .ping-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--accent-success);
-            animation: pulse 2s ease infinite;
+            background: var(--accent-green);
+            animation: pingPulse 2s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .ping-dot.amber {
+            background: var(--accent-amber);
+        }
+
+        .ping-dot.red {
+            background: var(--accent-red);
+        }
+
+        @keyframes pingPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .telemetry-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .repo-link {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s var(--transition-smooth);
+        }
+
+        .repo-link:hover {
+            color: var(--text-primary);
         }
 
         /* ============================================
-           COMMAND PALETTE (Spotlight-style)
+           RESPONSIVE DESIGN
            ============================================ */
-        .command-palette-overlay {
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .nav-pill {
+                max-width: 100%;
+                padding: 0.6rem 1rem;
+            }
+
+            .nav-links {
+                gap: 0.25rem;
+            }
+
+            .nav-link {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .shortcuts-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 100%;
+            }
+
+            .telemetry-footer {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: center;
+                text-align: center;
+            }
+
+            .telemetry-left {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .shortcuts-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .shortcut-card {
+                padding: 1rem 0.75rem;
+            }
+        }
+
+        /* ============================================
+           PROXY IFRAME OVERLAY (Hidden by default)
+           ============================================ */
+        .proxy-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity var(--transition-medium);
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .proxy-overlay.active {
             display: flex;
-            justify-content: center;
-            padding-top: 100px;
         }
 
-        .command-palette-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .command-palette {
-            width: 100%;
-            max-width: 560px;
-            background: var(--bg-glass-heavy);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--border-glass);
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            transform: translateY(-20px) scale(0.95);
-            transition: all var(--transition-medium);
-            overflow: hidden;
-        }
-
-        .command-palette-overlay.active .command-palette {
-            transform: translateY(0) scale(1);
-        }
-
-        .command-input-wrapper {
+        .proxy-header {
             display: flex;
             align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-glass);
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .command-icon {
-            font-size: 18px;
-            color: var(--text-tertiary);
-            margin-right: 12px;
-        }
-
-        .command-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-family: var(--font-display);
-            font-size: 16px;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .command-input::placeholder {
-            color: var(--text-tertiary);
-            font-weight: 400;
-        }
-
-        .command-shortcut {
-            font-size: 11px;
-            color: var(--text-tertiary);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border-glass);
-        }
-
-        .command-results {
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 8px 0;
-        }
-
-        .command-result-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .command-result-item:hover,
-        .command-result-item.selected {
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .command-result-item:active {
-            transform: scale(0.98);
-            /* Hook for tactile audio */
-        }
-
-        .command-result-icon {
-            width: 32px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
+        .proxy-url {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.85rem;
             color: var(--text-secondary);
-        }
-
-        .command-result-info {
             flex: 1;
+            margin: 0 1rem;
         }
 
-        .command-result-title {
-            font-family: var(--font-display);
-            font-size: 14px;
-            font-weight: 500;
+        .proxy-close {
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.8rem;
+            transition: all 0.2s var(--transition-smooth);
+        }
+
+        .proxy-close:hover {
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
-            margin-bottom: 2px;
         }
 
-        .command-result-subtitle {
-            font-size: 11px;
-            color: var(--text-tertiary);
-        }
-
-        /* ============================================
-           RESPONSIVE ADJUSTMENTS
-           ============================================ */
-        @media (max-width: 768px) {
-            .ide-container {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: fixed;
-                z-index: 100;
-                height: calc(100vh - var(--statusbar-height));
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(calc(-1 * var(--sidebar-width)));
-            }
-
-            .status-bar {
-                grid-column: 1 / 2;
-            }
+        .proxy-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="ide-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                ScribeDesk v1.0
-            </div>
-            <div class="file-tree" id="fileTree">
-                <!-- Files will be populated by JavaScript -->
-            </div>
-        </aside>
+    <!-- Ambient Background Glow -->
+    <div class="ambient-glow"></div>
 
-        <!-- Main Workspace -->
-        <main class="workspace" id="workspace">
-            <div class="tab-bar" id="tabBar"></div>
-            <div class="editor-area" id="editorArea">
-                <!-- Tab contents will be injected here -->
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Navigation Pill -->
+        <nav class="nav-pill">
+            <div class="nav-logo">
+                <div class="nav-logo-icon">S</div>
+                <span>ScribeDesk</span>
             </div>
-            <!-- Dummy code container for panic mode -->
-            <div class="dummy-code" id="dummyCode"></div>
-        </main>
+            <div class="nav-links">
+                <a class="nav-link active" data-section="home">Home</a>
+                <a class="nav-link" data-section="games">Games</a>
+                <a class="nav-link" data-section="apps">Apps</a>
+                <a class="nav-link" data-section="ai">AI</a>
+            </div>
+            <div class="nav-settings" title="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </div>
+        </nav>
 
-        <!-- Status Bar -->
-        <footer class="status-bar">
-            <div class="status-left">
-                <div class="status-item">
-                    <span class="status-indicator"></span>
-                    <span id="buildStatus">Build: Ready</span>
-                </div>
-                <div class="status-item">
-                    <span id="networkPath">net: 192.168.1.42 → proxy.local</span>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 class="hero-title">ScribeDesk</h1>
+            <p class="hero-subtitle">Professional Web Workspace</p>
+        </section>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="urlInput"
+                    placeholder="Enter URL or search..." 
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+
+        <!-- Shortcuts Grid -->
+        <div class="shortcuts-grid">
+            <div class="shortcut-card shortcut-discord" data-url="https://discord.com">
+                <div class="shortcut-icon">D</div>
+                <span class="shortcut-name">Discord</span>
+            </div>
+            <div class="shortcut-card shortcut-youtube" data-url="https://youtube.com">
+                <div class="shortcut-icon">Y</div>
+                <span class="shortcut-name">YouTube</span>
+            </div>
+            <div class="shortcut-card shortcut-github" data-url="https://github.com">
+                <div class="shortcut-icon">G</div>
+                <span class="shortcut-name">GitHub</span>
+            </div>
+            <div class="shortcut-card shortcut-chatgpt" data-url="https://chat.openai.com">
+                <div class="shortcut-icon">C</div>
+                <span class="shortcut-name">ChatGPT</span>
+            </div>
+            <div class="shortcut-card shortcut-google" data-url="https://google.com">
+                <div class="shortcut-icon">G</div>
+                <span class="shortcut-name">Google</span>
+            </div>
+            <div class="shortcut-card shortcut-reddit" data-url="https://reddit.com">
+                <div class="shortcut-icon">R</div>
+                <span class="shortcut-name">Reddit</span>
+            </div>
+            <div class="shortcut-card shortcut-twitter" data-url="https://twitter.com">
+                <div class="shortcut-icon">X</div>
+                <span class="shortcut-name">Twitter</span>
+            </div>
+            <div class="shortcut-card shortcut-twitch" data-url="https://twitch.tv">
+                <div class="shortcut-icon">T</div>
+                <span class="shortcut-name">Twitch</span>
+            </div>
+        </div>
+
+        <!-- Telemetry Footer -->
+        <footer class="telemetry-footer">
+            <div class="telemetry-left">
+                <span class="greeting" id="greeting">Good morning, User!</span>
+                <div class="ping-indicator">
+                    <span class="ping-dot" id="pingDot"></span>
+                    <span id="pingValue">Ping: -- ms</span>
                 </div>
             </div>
-            <div class="status-right">
-                <div class="status-item">
-                    <span id="latencyDisplay">Latency: 24ms</span>
-                </div>
-                <div class="status-item">
-                    <span id="sessionTime">Session: 0m</span>
-                </div>
-                <div class="status-item">
-                    <span>UTF-8</span>
-                </div>
+            <div class="telemetry-right">
+                <a href="#" class="repo-link">GitHub</a>
+                <span style="color: var(--glass-border);">•</span>
+                <a href="#" class="repo-link">Documentation</a>
             </div>
         </footer>
     </div>
 
-    <!-- Context Menu -->
-    <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item" data-action="open">
-            <span>📂</span> Open in New Tab
+    <!-- Proxy Overlay -->
+    <div class="proxy-overlay" id="proxyOverlay">
+        <div class="proxy-header">
+            <span class="proxy-url" id="proxyUrl">Loading...</span>
+            <button class="proxy-close" id="proxyClose">✕ Close</button>
         </div>
-        <div class="context-menu-item" data-action="copy">
-            <span>📋</span> Copy URL
-        </div>
-        <div class="context-menu-divider"></div>
-        <div class="context-menu-item" data-action="refresh">
-            <span>🔄</span> Refresh
-        </div>
-        <div class="context-menu-item" data-action="close">
-            <span>❌</span> Close All
-        </div>
-    </div>
-
-    <!-- Command Palette -->
-    <div class="command-palette-overlay" id="commandPaletteOverlay">
-        <div class="command-palette">
-            <div class="command-input-wrapper">
-                <span class="command-icon">⌘</span>
-                <input 
-                    type="text" 
-                    class="command-input" 
-                    id="commandInput" 
-                    placeholder="Type a URL or command..."
-                    autocomplete="off"
-                >
-                <span class="command-shortcut">ESC</span>
-            </div>
-            <div class="command-results" id="commandResults">
-                <!-- Results will be populated dynamically -->
-            </div>
-        </div>
+        <iframe class="proxy-frame" id="proxyFrame" src="" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-pointer-lock"></iframe>
     </div>
 
     <script>
         /* ============================================
-           SCRIBEDESK - TACTICAL IDE INTERFACE
+           SCRIBEDESK - CORE FUNCTIONALITY
            ============================================ */
-
-        // Configuration
-        const CONFIG = {
-            proxyPrefix: '/service/',
-            loadingDuration: 1500,
-            latencyMin: 15,
-            latencyMax: 45,
-            sessionUpdateInterval: 1000
-        };
-
-        // File system simulation (proxy routes disguised as project files)
-        const fileSystem = [
-            {
-                section: 'Projects',
-                files: [
-                    { name: 'discord_socket.js', icon: 'js', url: 'https://discord.com' },
-                    { name: 'youtube_streaming.css', icon: 'css', url: 'https://youtube.com' },
-                    { name: 'webgl_engine.html', icon: 'html', url: 'https://threejs.org/examples' },
-                    { name: 'study_resources.json', icon: 'json', url: 'https://wikipedia.org' }
-                ]
-            },
-            {
-                section: 'Utilities',
-                files: [
-                    { name: 'calculator_module.py', icon: 'py', url: 'https://replit.com' },
-                    { name: 'data_visualizer.cpp', icon: 'cpp', url: 'https://codepen.io' },
-                    { name: 'api_gateway.js', icon: 'js', url: 'https://github.com' },
-                    { name: 'cloud_storage.json', icon: 'json', url: 'https://drive.google.com' }
-                ]
-            },
-            {
-                section: 'Documentation',
-                files: [
-                    { name: 'readme.md', icon: 'js', url: 'https://stackoverflow.com' },
-                    { name: 'changelog.txt', icon: 'js', url: 'https://reddit.com' },
-                    { name: 'license.agreement', icon: 'js', url: 'https://archive.org' }
-                ]
-            }
-        ];
-
-        // State management
-        const state = {
-            tabs: [],
-            activeTabId: null,
-            sessionId: Date.now(),
-            sessionStartTime: Date.now(),
-            panicMode: false,
-            contextMenuFile: null
-        };
 
         // DOM Elements
-        const elements = {
-            sidebar: document.getElementById('sidebar'),
-            fileTree: document.getElementById('fileTree'),
-            tabBar: document.getElementById('tabBar'),
-            editorArea: document.getElementById('editorArea'),
-            dummyCode: document.getElementById('dummyCode'),
-            contextMenu: document.getElementById('contextMenu'),
-            commandPaletteOverlay: document.getElementById('commandPaletteOverlay'),
-            commandInput: document.getElementById('commandInput'),
-            commandResults: document.getElementById('commandResults'),
-            buildStatus: document.getElementById('buildStatus'),
-            networkPath: document.getElementById('networkPath'),
-            latencyDisplay: document.getElementById('latencyDisplay'),
-            sessionTime: document.getElementById('sessionTime')
-        };
+        const urlInput = document.getElementById('urlInput');
+        const proxyOverlay = document.getElementById('proxyOverlay');
+        const proxyFrame = document.getElementById('proxyFrame');
+        const proxyUrl = document.getElementById('proxyUrl');
+        const proxyClose = document.getElementById('proxyClose');
+        const greetingEl = document.getElementById('greeting');
+        const pingValueEl = document.getElementById('pingValue');
+        const pingDotEl = document.getElementById('pingDot');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const shortcutCards = document.querySelectorAll('.shortcut-card');
 
-        /* ============================================
-           INITIALIZATION
-           ============================================ */
-        function init() {
-            renderFileTree();
-            startTelemetry();
-            setupEventListeners();
-            console.log('[ScribeDesk] System initialized');
-        }
-
-        /* ============================================
-           FILE TREE RENDERING
-           ============================================ */
-        function renderFileTree() {
-            elements.fileTree.innerHTML = '';
+        // ============================================
+        // GREETING BASED ON TIME
+        // ============================================
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = 'Good evening';
             
-            fileSystem.forEach(section => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'file-tree-section';
-                
-                const label = document.createElement('div');
-                label.className = 'file-tree-label';
-                label.textContent = section.section;
-                sectionDiv.appendChild(label);
-                
-                section.files.forEach(file => {
-                    const fileItem = createFileItem(file);
-                    sectionDiv.appendChild(fileItem);
-                });
-                
-                elements.fileTree.appendChild(sectionDiv);
-            });
-        }
-
-        function createFileItem(file) {
-            const item = document.createElement('div');
-            item.className = 'file-item';
-            item.dataset.file = JSON.stringify(file);
-            
-            item.innerHTML = `
-                <span class="file-icon ${file.icon}">${getFileIconSymbol(file.icon)}</span>
-                <span class="file-name">${file.name}</span>
-            `;
-            
-            item.addEventListener('click', () => openFile(file));
-            item.addEventListener('contextmenu', (e) => showContextMenu(e, file));
-            
-            return item;
-        }
-
-        function getFileIconSymbol(type) {
-            const symbols = {
-                js: 'JS',
-                css: '#',
-                html: '<>',
-                json: '{}',
-                py: 'py',
-                cpp: 'C+'
-            };
-            return symbols[type] || '📄';
-        }
-
-        /* ============================================
-           TAB MANAGEMENT
-           ============================================ */
-        function openFile(file) {
-            if (state.panicMode) {
-                exitPanicMode();
+            if (hour >= 5 && hour < 12) {
+                greeting = 'Good morning';
+            } else if (hour >= 12 && hour < 17) {
+                greeting = 'Good afternoon';
             }
             
-            // Check if tab already exists
-            const existingTab = state.tabs.find(tab => tab.url === file.url);
-            if (existingTab) {
-                switchToTab(existingTab.id);
-                return;
+            greetingEl.textContent = `${greeting}, User!`;
+        }
+
+        // ============================================
+        // PING SIMULATION
+        // ============================================
+        function simulatePing() {
+            // Generate realistic ping values (15-45ms typical, occasional spikes)
+            const basePing = Math.floor(Math.random() * 25) + 15;
+            const spike = Math.random() > 0.9 ? Math.floor(Math.random() * 50) + 50 : 0;
+            const ping = basePing + spike;
+            
+            pingValueEl.textContent = `Ping: ${ping} ms`;
+            
+            // Update dot color based on ping
+            pingDotEl.className = 'ping-dot';
+            if (ping > 100) {
+                pingDotEl.classList.add('red');
+            } else if (ping > 60) {
+                pingDotEl.classList.add('amber');
             }
-            
-            const tabId = generateId();
-            const tab = {
-                id: tabId,
-                name: file.name,
-                url: file.url,
-                icon: file.icon
-            };
-            
-            state.tabs.push(tab);
-            renderTabs();
-            switchToTab(tabId);
-            
-            // Hook for tactile audio: play tab open sound
         }
 
-        function generateId() {
-            return 'tab_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function renderTabs() {
-            elements.tabBar.innerHTML = '';
-            
-            state.tabs.forEach(tab => {
-                const tabEl = document.createElement('div');
-                tabEl.className = `tab ${tab.id === state.activeTabId ? 'active' : ''}`;
-                tabEl.dataset.tabId = tab.id;
-                
-                tabEl.innerHTML = `
-                    <span class="file-icon ${tab.icon}" style="margin-right: 8px; font-size: 10px;">${getFileIconSymbol(tab.icon)}</span>
-                    <span>${tab.name}</span>
-                    <span class="tab-close" onclick="event.stopPropagation(); closeTab('${tab.id}')">×</span>
-                `;
-                
-                tabEl.addEventListener('click', () => switchToTab(tab.id));
-                elements.tabBar.appendChild(tabEl);
-            });
-        }
-
-        function switchToTab(tabId) {
-            state.activeTabId = tabId;
-            renderTabs();
-            
-            // Remove all active states from tab contents
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            let tabContent = document.getElementById(`content_${tabId}`);
-            
-            if (!tabContent) {
-                tabContent = createTabContent(tabId);
-                elements.editorArea.appendChild(tabContent);
-                showLoadingScreen(tabId);
-            } else {
-                tabContent.classList.add('active');
-            }
-            
-            elements.dummyCode.classList.remove('active');
-            
-            // Hook for tactile audio: play tab switch sound
-        }
-
-        function createTabContent(tabId) {
-            const content = document.createElement('div');
-            content.className = 'tab-content';
-            content.id = `content_${tabId}`;
-            
-            content.innerHTML = `
-                <div class="loading-screen" id="loading_${tabId}">
-                    <div class="terminal-output" id="terminal_${tabId}"></div>
-                </div>
-                <iframe src="" style="display:none;" id="iframe_${tabId}"></iframe>
-            `;
-            
-            return content;
-        }
-
-        function showLoadingScreen(tabId) {
-            const loadingScreen = document.getElementById(`loading_${tabId}`);
-            const terminal = document.getElementById(`terminal_${tabId}`);
-            const iframe = document.getElementById(`iframe_${tabId}`);
-            
-            loadingScreen.classList.add('active');
-            iframe.style.display = 'none';
-            
-            const tab = state.tabs.find(t => t.id === tabId);
-            const messages = generateTerminalMessages(tab);
-            
-            let delay = 0;
-            messages.forEach((msg, index) => {
-                setTimeout(() => {
-                    const line = document.createElement('div');
-                    line.className = 'terminal-line';
-                    line.style.animationDelay = `${index * 0.1}s`;
-                    line.innerHTML = msg;
-                    terminal.appendChild(line);
-                }, delay);
-                delay += 200;
-            });
-            
-            setTimeout(() => {
-                loadingScreen.classList.remove('active');
-                iframe.src = CONFIG.proxyPrefix + tab.url;
-                iframe.style.display = 'block';
-                
-                // Hook for tactile audio: play load complete sound
-            }, CONFIG.loadingDuration);
-        }
-
-        function generateTerminalMessages(tab) {
-            return [
-                `<span class="terminal-info">➜</span> Initializing workspace...`,
-                `<span class="terminal-info">➜</span> Loading module: <span style="color: var(--text-primary)">${tab.name}</span>`,
-                `<span class="terminal-info">➜</span> Checking dependencies...`,
-                `<span class="terminal-success">✓</span> Dependencies resolved`,
-                `<span class="terminal-info">➜</span> Establishing secure connection...`,
-                `<span class="terminal-warning">⚠</span> Bypassing CORS restrictions...`,
-                `<span class="terminal-success">✓</span> Connection established`,
-                `<span class="terminal-info">➜</span> Rendering preview...`,
-                `<span class="cursor-blink"></span>`
-            ];
-        }
-
-        function closeTab(tabId) {
-            const index = state.tabs.findIndex(t => t.id === tabId);
-            if (index === -1) return;
-            
-            state.tabs.splice(index, 1);
-            
-            const content = document.getElementById(`content_${tabId}`);
-            if (content) content.remove();
-            
-            if (state.activeTabId === tabId) {
-                if (state.tabs.length > 0) {
-                    switchToTab(state.tabs[Math.max(0, index - 1)].id);
-                } else {
-                    state.activeTabId = null;
-                    renderTabs();
-                    elements.dummyCode.classList.add('active');
-                    elements.dummyCode.innerHTML = getDummyCode();
-                }
-            } else {
-                renderTabs();
-            }
-            
-            // Hook for tactile audio: play tab close sound
-        }
-
-        function closeAllTabs() {
-            state.tabs = [];
-            state.activeTabId = null;
-            elements.editorArea.innerHTML = '';
-            elements.tabBar.innerHTML = '';
-            elements.dummyCode.classList.add('active');
-            elements.dummyCode.innerHTML = getDummyCode();
-        }
-
-        /* ============================================
-           DUMMY CODE FOR PANIC MODE
-           ============================================ */
-        function getDummyCode() {
-            return `
-<span class="comment">// Standard Library Import</span>
-<span class="keyword">import</span> sys
-<span class="keyword">import</span> os
-<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime
-
-<span class="comment"># Educational Data Processing Module</span>
-<span class="keyword">class</span> <span class="function">DataAnalyzer</span>:
-    <span class="keyword">def</span> <span class="function">__init__</span>(self):
-        self.dataset = []
-        self.results = {}
-    
-    <span class="keyword">def</span> <span class="function">load_data</span>(self, filepath):
-        <span class="string">"""Load educational dataset from CSV"""</span>
-        <span class="keyword">try</span>:
-            <span class="keyword">with</span> open(filepath, <span class="string">'r'</span>) <span class="keyword">as</span> f:
-                self.dataset = f.readlines()
-            <span class="keyword">return</span> <span class="keyword">True</span>
-        <span class="keyword">except</span> FileNotFoundError:
-            <span class="keyword">return</span> <span class="keyword">False</span>
-    
-    <span class="keyword">def</span> <span class="function">calculate_statistics</span>(self):
-        <span class="string">"""Compute mean, median, and standard deviation"""</span>
-        values = [<span class="function">float</span>(x) <span class="keyword">for</span> x <span class="keyword">in</span> self.dataset]
+        // ============================================
+        // PROXY INTEGRATION HOOKS
+        // ============================================
         
-        mean = <span class="function">sum</span>(values) / <span class="function">len</span>(values)
-        variance = <span class="function">sum</span>((x - mean) ** <span class="number">2</span> <span class="keyword">for</span> x <span class="keyword">in</span> values) / <span class="function">len</span>(values)
-        
-        self.results = {
-            <span class="string">'mean'</span>: <span class="function">round</span>(mean, <span class="number">2</span>),
-            <span class="string">'variance'</span>: <span class="function">round</span>(variance, <span class="number">2</span>),
-            <span class="string">'count'</span>: <span class="function">len</span>(values)
-        }
-        
-        <span class="keyword">return</span> self.results
-
-<span class="comment">// Main execution entry point</span>
-<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
-    analyzer = <span class="function">DataAnalyzer</span>()
-    <span class="function">print</span>(<span class="string">"Starting analysis..."</span>)
-    results = analyzer.<span class="function">calculate_statistics</span>()
-    <span class="function">print</span>(<span class="string">f"Results: {results}"</span>)
-`;
-        }
-
-        /* ============================================
-           CONTEXT MENU
-           ============================================ */
-        function showContextMenu(event, file) {
-            event.preventDefault();
-            state.contextMenuFile = file;
-            
-            const menu = elements.contextMenu;
-            menu.style.left = `${event.clientX}px`;
-            menu.style.top = `${event.clientY}px`;
-            menu.classList.add('visible');
-        }
-
-        function hideContextMenu() {
-            elements.contextMenu.classList.remove('visible');
-            state.contextMenuFile = null;
-        }
-
-        /* ============================================
-           COMMAND PALETTE
-           ============================================ */
-        function toggleCommandPalette() {
-            const isActive = elements.commandPaletteOverlay.classList.contains('active');
-            
-            if (isActive) {
-                elements.commandPaletteOverlay.classList.remove('active');
-                elements.commandInput.value = '';
-                elements.commandResults.innerHTML = '';
-            } else {
-                elements.commandPaletteOverlay.classList.add('active');
-                elements.commandInput.focus();
-                populateCommandResults();
+        /**
+         * Opens a URL in the proxy iframe
+         * @param {string} url - The URL to load
+         */
+        function openProxy(url) {
+            // Ensure URL has protocol
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
             }
+            
+            proxyUrl.textContent = url;
+            
+            // HOOK: Replace this with your actual proxy service
+            // Example for Ultraviolet:
+            // const proxiedUrl = __uv$config.prefix + __uv$config.encodeUrl(url);
+            // proxyFrame.src = proxiedUrl;
+            
+            // For now, load directly (replace with your proxy implementation)
+            proxyFrame.src = url;
+            
+            proxyOverlay.classList.add('active');
+            
+            // Tactile feedback hook - add your audio here
+            // playTactileSound('click');
         }
 
-        function populateCommandResults(query = '') {
-            const allFiles = fileSystem.flatMap(section => section.files);
-            const filtered = query 
-                ? allFiles.filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
-                : allFiles.slice(0, 5);
+        /**
+         * Closes the proxy overlay
+         */
+        function closeProxy() {
+            proxyFrame.src = '';
+            proxyOverlay.classList.remove('active');
             
-            elements.commandResults.innerHTML = '';
-            
-            filtered.forEach(file => {
-                const item = document.createElement('div');
-                item.className = 'command-result-item';
-                item.innerHTML = `
-                    <div class="command-result-icon">
-                        <span class="file-icon ${file.icon}" style="font-size: 10px;">${getFileIconSymbol(file.icon)}</span>
-                    </div>
-                    <div class="command-result-info">
-                        <div class="command-result-title">${file.name}</div>
-                        <div class="command-result-subtitle">${file.url}</div>
-                    </div>
-                `;
-                
-                item.addEventListener('click', () => {
-                    openFile(file);
-                    toggleCommandPalette();
-                });
-                
-                elements.commandResults.appendChild(item);
-            });
+            // Tactile feedback hook
+            // playTactileSound('close');
         }
 
-        function handleCommandInput(value) {
-            if (!value.trim()) return;
+        /**
+         * Processes input and opens proxy
+         * @param {string} input - User input from search bar
+         */
+        function processInput(input) {
+            if (!input.trim()) return;
+            
+            const trimmed = input.trim();
             
             // Check if it's a URL
-            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-            if (urlPattern.test(value)) {
-                const url = value.startsWith('http') ? value : `https://${value}`;
-                const file = {
-                    name: new URL(url).hostname,
-                    icon: 'html',
-                    url: url
-                };
-                openFile(file);
+            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+            
+            if (urlPattern.test(trimmed)) {
+                openProxy(trimmed);
             } else {
-                // Search in file system
-                const allFiles = fileSystem.flatMap(section => section.files);
-                const match = allFiles.find(f => f.name.toLowerCase().includes(value.toLowerCase()));
-                if (match) {
-                    openFile(match);
-                }
+                // Treat as search query
+                openProxy(`https://www.google.com/search?q=${encodeURIComponent(trimmed)}`);
             }
             
-            toggleCommandPalette();
+            urlInput.value = '';
         }
 
-        /* ============================================
-           PANIC MODE
-           ============================================ */
-        let escPressCount = 0;
-        let escTimer = null;
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
 
-        function triggerPanicMode() {
-            state.panicMode = true;
-            
-            // Clear all iframes
-            document.querySelectorAll('iframe').forEach(iframe => {
-                iframe.src = 'about:blank';
-            });
-            
-            // Collapse sidebar
-            elements.sidebar.classList.add('collapsed');
-            
-            // Show dummy code
-            elements.dummyCode.classList.add('active');
-            elements.dummyCode.innerHTML = getDummyCode();
-            
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            console.log('[ScribeDesk] Panic mode activated');
-        }
-
-        function exitPanicMode() {
-            state.panicMode = false;
-            elements.sidebar.classList.remove('collapsed');
-            elements.dummyCode.classList.remove('active');
-            
-            if (state.activeTabId) {
-                const content = document.getElementById(`content_${state.activeTabId}`);
-                if (content) content.classList.add('active');
+        // Search input - Enter key
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                processInput(urlInput.value);
             }
+        });
+
+        // Shortcut cards
+        shortcutCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const url = card.dataset.url;
+                if (url) {
+                    openProxy(url);
+                }
+            });
+            
+            // Tactile feedback on click
+            card.addEventListener('mousedown', () => {
+                // playTactileSound('cardClick');
+            });
+        });
+
+        // Close proxy button
+        proxyClose.addEventListener('click', closeProxy);
+
+        // Navigation links
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                const section = link.dataset.section;
+                
+                // HOOK: Handle navigation to different sections
+                // You can implement section switching here
+                console.log(`Navigating to: ${section}`);
+                
+                // Tactile feedback
+                // playTactileSound('navClick');
+            });
+        });
+
+        // Settings button
+        document.querySelector('.nav-settings').addEventListener('click', () => {
+            // HOOK: Open settings modal
+            console.log('Settings clicked');
+            // playTactileSound('settingsClick');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Focus search on Ctrl/Cmd + K
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                urlInput.focus();
+                urlInput.select();
+            }
+            
+            // Close proxy on Escape
+            if (e.key === 'Escape' && proxyOverlay.classList.contains('active')) {
+                closeProxy();
+            }
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function init() {
+            updateGreeting();
+            simulatePing();
+            
+            // Update ping every 2 seconds
+            setInterval(simulatePing, 2000);
+            
+            console.log('ScribeDesk initialized');
+            console.log('Proxy hooks ready for integration');
         }
 
-        /* ============================================
-           TELEMETRY MOCKING
-           ============================================ */
-        function startTelemetry() {
-            // Session timer
-            setInterval(() => {
-                const elapsed = Math.floor((Date.now() - state.sessionStartTime) / 60000);
-                elements.sessionTime.textContent = `Session: ${elapsed}m`;
-                
-                // Update build status based on session time
-                const statuses = ['Ready', 'Compiling', 'Optimizing', 'Ready'];
-                const status = statuses[Math.floor(elapsed / 2) % statuses.length];
-                elements.buildStatus.textContent = `Build: ${status}`;
-            }, CONFIG.sessionUpdateInterval);
-            
-            // Latency simulator
-            setInterval(() => {
-                const latency = Math.floor(Math.random() * (CONFIG.latencyMax - CONFIG.latencyMin + 1)) + CONFIG.latencyMin;
-                elements.latencyDisplay.textContent = `Latency: ${latency}ms`;
-            }, 2000);
-            
-            // Network path randomization
-            const networkPaths = [
-                '192.168.1.42 → proxy.local',
-                '10.0.0.15 → gateway.net',
-                '172.16.0.8 → tunnel.secure',
-                '192.168.0.103 → mesh.node'
-            ];
-            
-            setInterval(() => {
-                const path = networkPaths[Math.floor(Math.random() * networkPaths.length)];
-                elements.networkPath.textContent = `net: ${path}`;
-            }, 5000);
-        }
-
-        /* ============================================
-           EVENT LISTENERS
-           ============================================ */
-        function setupEventListeners() {
-            // Global keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                // Command Palette: Ctrl/Cmd + K
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    toggleCommandPalette();
-                }
-                
-                // Panic Mode: Double Esc
-                if (e.key === 'Escape') {
-                    escPressCount++;
-                    
-                    if (escPressCount === 1) {
-                        escTimer = setTimeout(() => {
-                            escPressCount = 0;
-                        }, 300);
-                    } else if (escPressCount === 2) {
-                        clearTimeout(escTimer);
-                        escPressCount = 0;
-                        triggerPanicMode();
-                    }
-                }
-                
-                // Close command palette with Esc
-                if (e.key === 'Escape' && elements.commandPaletteOverlay.classList.contains('active')) {
-                    toggleCommandPalette();
-                }
-            });
-            
-            // Command input handling
-            elements.commandInput.addEventListener('input', (e) => {
-                populateCommandResults(e.target.value);
-            });
-            
-            elements.commandInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleCommandInput(elements.commandInput.value);
-                }
-            });
-            
-            // Close context menu on click outside
-            document.addEventListener('click', (e) => {
-                if (!elements.contextMenu.contains(e.target)) {
-                    hideContextMenu();
-                }
-            });
-            
-            // Context menu actions
-            elements.contextMenu.addEventListener('click', (e) => {
-                const action = e.target.closest('.context-menu-item')?.dataset.action;
-                if (!action || !state.contextMenuFile) return;
-                
-                switch (action) {
-                    case 'open':
-                        openFile(state.contextMenuFile);
-                        break;
-                    case 'copy':
-                        navigator.clipboard.writeText(state.contextMenuFile.url);
-                        break;
-                    case 'refresh':
-                        const tab = state.tabs.find(t => t.url === state.contextMenuFile.url);
-                        if (tab) {
-                            const iframe = document.getElementById(`iframe_${tab.id}`);
-                            if (iframe) iframe.src = iframe.src;
-                        }
-                        break;
-                    case 'close':
-                        closeAllTabs();
-                        break;
-                }
-                
-                hideContextMenu();
-            });
-            
-            // Prevent default context menu on file items
-            document.querySelectorAll('.file-item').forEach(item => {
-                item.addEventListener('contextmenu', (e) => e.preventDefault());
-            });
-        }
-
-        // Initialize application
+        // Start the application
         init();
+
+        /* ============================================
+           TACTILE FEEDBACK HOOKS (For future implementation)
+           ============================================ */
+        
+        /**
+         * Play tactile sound effect
+         * @param {string} type - Type of sound ('click', 'cardClick', 'navClick', 'close', 'settingsClick')
+         */
+        function playTactileSound(type) {
+            // HOOK: Implement your tactile audio system here
+            // Example:
+            // const audio = new Audio(`/sounds/${type}.mp3`);
+            // audio.volume = 0.3;
+            // audio.play();
+            
+            console.log(`[Tactile Hook] Sound type: ${type}`);
+        }
+
+        /* ============================================
+           PROXY SERVICE INTEGRATION GUIDE
+           ============================================
+           
+           To integrate with Ultraviolet or Baremux:
+           
+           1. Include your proxy scripts in the <head>:
+              <script src="uv.bundle.js"></script>
+              <script src="uv.config.js"></script>
+              <script src="uv.sw.js"></script>
+           
+           2. Modify the openProxy() function:
+              function openProxy(url) {
+                  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                      url = 'https://' + url;
+                  }
+                  
+                  const proxiedUrl = __uv$config.prefix + __uv$config.encodeUrl(url);
+                  proxyFrame.src = proxiedUrl;
+                  proxyUrl.textContent = url;
+                  proxyOverlay.classList.add('active');
+              }
+           
+           3. For Baremux, use their connection API similarly
+           
+           ============================================ */
     </script>
 </body>
 </html>
